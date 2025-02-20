@@ -18,6 +18,7 @@ $(BIN)/%: $(SRC)/%.c
 clean:
 	rm -f $(BIN)/*
 	rm -f $(OUTPUT)output/outputImage.png
+	truncate -s 0 output/output.txt
 
 # Make the bin directory if it doesn't exist
 $(BIN):

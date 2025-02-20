@@ -13,8 +13,13 @@ int main() {
     unsigned char *buffer; //pointer b/c we need to use malloc to make some memory for the whole file
 
     const char KEY[] = "|message|";
+    const char MESSAGE[] = "Gooo Dawgs! Sic 'em! Woof wOof wOOf woOf!";
     for (int i = 0; i < strlen(KEY); i++) {
         printf("%02X", KEY[i]);
+    }
+        printf("\n");
+    for (int i = 0; i < strlen(MESSAGE); i++) {
+        printf("%02X", MESSAGE[i]);
     }
     /*
         NOTE: The stars before some variable names are used to designate pointers, as variables in C, unlike java
