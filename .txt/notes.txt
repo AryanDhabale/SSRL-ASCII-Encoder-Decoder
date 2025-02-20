@@ -1,0 +1,63 @@
+- THE IDEA
+- take the image in hexadecimal, and then change the least significant bit for each color value for each pixel to represent 2 letters
+    - this works bc each hexadecimal represents one color value like so (ex. A3), in which A represent the last 4 bits of a binary byte, and the 3
+    - represents the first 4 bits of a binary byte. remember that to store 1 ASCII character, you 7 binary bits of info (as there are 128 unique characters),
+    - so you would need 3-4 hexadecimal bits to store one letter. that would mean you would be changing 1-1.3 pixels VERY SLIGHTLY to store one ascii letter,
+    - with the change being so slight, that it is undetectable to the human eye. 
+
+- for decoding
+    - I think you would have a special beginning and end to each message encoded into the ascii, such as a special string of characters (LIKE A KEY),
+    - to designate the beginning and end of the message. you then have the decoder look for those special charcters, and then extrapolate the message
+    - from there. 
+
+- STEPS TO COMPLETE TO FINISH
+    - ENCODER
+        - Parse the .png to get the hexadecimal data
+        - learn to how change the LSB for a set of bits
+            - think about WHERE to do this in the image (would this be in a random location?)
+            - include a special set of characters to designate the beginning and end of the message
+            - would you connect this special set to the decoder everytime you compile the message???
+                - or would you use the same set of special characters???
+        - set this new hexadecimal data as a new image, or edit the original image (if you can do that)
+        - CHECK IF IT works
+        -
+
+    - DECODER
+        - Parse the .png to get the hexadecimal data
+        - go through the hex data to find the special set of characters
+        - read the message
+        - close the decoder and file, and be happy :)
+
+
+
+
+
+### HELPFUL THINGS IN C ###
+- use fread() for reading files in C in binary (bytes)
+
+- can use char/string values to store ASCII, and output like so: 
+    int main() {
+    char hello = 65, b = 66, c = 67;
+    printf("%c\n", hello);
+    printf("%c\n", b);
+    printf("%c", c);
+    return 0;
+    }
+
+- There are no string in C, instead, words are represented as an array of characters: 
+    char name[] = "Aryan";  // Implicitly adds '\0' at the end
+    char name[6] = {'A', 'r', 'y', 'a', 'n', '\0'};  // Manually adding '\0'
+
+- There is type casting in C, but its a little different than java
+    // Manual conversion: int to float
+    float sum = (float) 5 / 2;
+
+    printf("%f", sum); // 2.500000
+
+- Boolean Values are returned as 1 and 0, not true and false
+
+- In C, you can create, open, read, and write to files by declaring a pointer of type FILE, and use the fopen() function:
+    FILE *fptr;
+    fptr = fopen(filename, mode);
+
+- if you want to overwrite something in a file, use mode "w", and if you want to append to a file, use mode "a"
