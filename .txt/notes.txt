@@ -13,6 +13,7 @@
 - STEPS TO COMPLETE TO FINISH
     - ENCODER
         - Parse the .png to get the hexadecimal data
+            - NOTE: I used the stb library (used for images) to get certain aspects about the image
         - learn to how change the LSB for a set of bits
             - think about WHERE to do this in the image (would this be in a random location?)
             - include a special set of characters to designate the beginning and end of the message
@@ -20,7 +21,8 @@
                 - or would you use the same set of special characters???
         - set this new hexadecimal data as a new image, or edit the original image (if you can do that)
         - CHECK IF IT works
-        -
+        - You also have to OUTPUT an image, by taking the output of the raw binary data, and converting that into a pdf file
+        - THEN you pass that into the decoder, and hopefully that works...
 
     - DECODER
         - Parse the .png to get the hexadecimal data

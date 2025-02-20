@@ -17,6 +17,7 @@ $(BIN)/%: $(SRC)/%.c
 # Clean up compiled executables
 clean:
 	rm -f $(BIN)/*
+	rm -f $(OUTPUT)output/outputImage.png
 
 # Make the bin directory if it doesn't exist
 $(BIN):
