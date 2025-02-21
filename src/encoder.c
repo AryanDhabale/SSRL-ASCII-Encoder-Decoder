@@ -72,13 +72,32 @@ unsigned char* binaryToImage(const char *binaryData, int width, int height, int 
     return imageData;
 }
 
-/*
-char* encode (char* imageData, char* message, char* key) {
-    char *encodedImageData;
 
+char* encode (char* imageData, char* message, char* key) {
+    int bufferLength = strlen(imageData);
+    int bounds = strlen(message) + strlen(key)*2;
+    char *encodedImageData = imageData;
+
+
+    int index = 0;
+    for (size_t i = 0; i < strlen(key); i++) {
+        encodedImageData[(i*8) + 7] = key[i];
+        index = (i*8) + 7;
+    }
+
+    for (size_t i = 0; i < strlen(message); i++) {
+        encodedImageData[(i*8) + 7] = message[i];
+        index = (i*8) + 7;
+    }
+    for (size_t i = 0; i < strlen(key); i++) {
+        encodedImageData[(i*8) + 7] = key[i];
+        index = (i*8) + 7;
+    }
+
+    return encodedImageData;
 
 }
-*/
+
 
 
 int main() {
