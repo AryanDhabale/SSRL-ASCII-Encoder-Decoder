@@ -144,7 +144,7 @@ int main() {
         printf("Error reading input.\n");
     }
     
-    unsigned char *inputFilePoint = stbi_load("./images/image.png", &width, &height, &channels, 0);
+    unsigned char *inputFilePoint = stbi_load("./images/hairyDawg.png", &width, &height, &channels, 0);
     if (outputFile == NULL) {
         printf("failed to create/open output image file");
         fclose(outputFile);
