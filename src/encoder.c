@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "decoder.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "./libraries/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -9,7 +10,6 @@
 char* calculate_checksum(const char *binaryData) {
     uint8_t checksum = 0;
 
-    // Iterate through the binary data in chunks of 8 bits (1 byte)
     for (size_t i = 0; i < strlen(binaryData); i += 8) {
         int byte = 0;
         for (int j = 0; j < 8; j++) {
@@ -17,7 +17,7 @@ char* calculate_checksum(const char *binaryData) {
                 byte |= (binaryData[i + j] - '0') << (7 - j);
             }
         }
-        checksum += byte; // Add the byte to the checksum
+        checksum += byte; 
     }
 
     char *binaryChecksum = (char *)malloc(9 * sizeof(char));
@@ -36,8 +36,8 @@ char* calculate_checksum(const char *binaryData) {
 }
 
 char* imageToBinary(unsigned char* inputFilePoint, int width, int height, int channels) {
-    size_t totalBytes = width * height * channels;  // total number of bytes of image data
-    size_t bufferSize = totalBytes * 8 + 1; // Each byte will be converted into 8 bits, plus 1 for null-terminator
+    size_t totalBytes = width * height * channels;  
+    size_t bufferSize = totalBytes * 8 + 1; 
 
     // Allocate memory for the buffer to store binary representation
     char *buffer = (char*)malloc(bufferSize);
@@ -126,79 +126,7 @@ void encode (char* imageData, const char* message, const char* key, int imageDat
     }
 }
 
-char* decode(char *binaryStr, const char *key) {
-    size_t len = strlen(binaryStr);
-    char *keyInBinary = stringToBinary(key);
-    int keyStreak = 0;
-    int keyLength = strlen(key);
-    size_t numBytes = len / 8;
-    size_t extractedLength = 0;
-    int index = 0;
-    
-    
-    // Allocate space for the extracted bits (as a string)
-    char *hiddenBits = malloc(numBytes + 1);
-    if (!hiddenBits) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        return NULL;
-    }
-    
-    // Extract the 8th bit (index 7) from each 8-character group.
-    for (size_t i = 0; i < numBytes; i++) {
-        // The LSB of the i-th byte is at position (i * 8 + 7)
-        hiddenBits[i] = binaryStr[i * 8 + 7];
-        extractedLength++;
-        if (keyInBinary[keyStreak] == binaryStr[i * 8 + 7]) {
-            keyStreak++;
-        } else if (binaryStr[i * 8 + 7] == 48) {
-            keyStreak = 1;
-        } else {
-            keyStreak = 0;
-        }
-        if (keyStreak == keyLength*8) {
-            break;
-            printf("loop is not broken out of");
-        }
-        index = i * 8 + 7;
-    }
-
-    hiddenBits[extractedLength] = '\0';
-
-    
-    // Now, every group of 8 bits in hiddenBits will form one ASCII character.
-    size_t messageLength = (extractedLength / 8) - strlen(key);
-    char *message = malloc(messageLength+1);
-    if (!message) {
-        fprintf(stderr, "Memory allocation failed.\n");
-        free(hiddenBits);
-        return NULL;
-    }
-    for (size_t i = 0; i < messageLength; i++) {
-        int asciiVal = 0;
-        // Process 8 bits for one character.
-        for (int j = 0; j < 8; j++) {
-            asciiVal = (asciiVal << 1) | (hiddenBits[i * 8 + j] - '0');
-        }
-        message[i] = (char)asciiVal;
-    }
-    message[messageLength] = '\0';
-    
-    free(hiddenBits);
-    char *checksum = calculate_checksum(message);
-
-    int checkSumPass = 1;
-    index += 16; //shift the index by 2 bits to match the current index.
-    for (int i = 0; i < 7; i++) {
-        if (checksum[i] !=binaryStr[index + 8*i]) {
-            printf("Data Lost/Message is incorrect");
-            checkSumPass = 0;
-        }
-    }
-    if (checkSumPass == 1) {
-        printf("No Data Lost :)");
-    }
-    return message;
-}
+char* decode(char *binaryStr, const char *key);
 
 
 
@@ -207,7 +135,14 @@ int main() {
     FILE *outputFile = fopen("./output/output.txt", "wb"); // Open output image file in write mode
     int width, height, channels;
     const char KEY[] = "|||";
-    const char MESSAGE[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+    printf("Enter the message to encode: ");
+    char MESSAGE[400000]; //arbritrary number
+    if (fgets(MESSAGE, sizeof(MESSAGE), stdin) != NULL) {
+        MESSAGE[strcspn(MESSAGE, "\n")] = '\0';
+        printf("You entered: %s\n", MESSAGE);
+    } else {
+        printf("Error reading input.\n");
+    }
     
     unsigned char *inputFilePoint = stbi_load("./images/image.png", &width, &height, &channels, 0);
     if (outputFile == NULL) {

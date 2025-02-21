@@ -5,16 +5,26 @@ SRC = src
 BIN = bin
 
 SRCS = $(wildcard $(SRC)/*.c)
-BINS = $(SRCS:$(SRC)/%.c=$(BIN)/%)
+OBJS = $(SRCS:$(SRC)/%.c=$(BIN)/%.o)
+TARGET = $(BIN)/program
 
 # Default target
-all: $(BINS)
+all: $(TARGET)
 
-# Rule to compile .c files into .exe files
-$(BIN)/%: $(SRC)/%.c
-	$(CC) $(CFLAGS) -o $@ $<
+# Rule to compile all .c files into a single executable
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-# Clean up compiled executables
+# Rule to compile .c files into .o object files
+$(BIN)/%.o: $(SRC)/%.c | $(BIN)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Rule to run the compiled program
+run: $(TARGET)
+	@echo "Running $(TARGET)..."
+	@$(TARGET)
+
+# Clean up compiled files
 clean:
 	rm -f $(BIN)/*
 	rm -f $(OUTPUT)output/outputImage.png
