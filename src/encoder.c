@@ -2,13 +2,15 @@
 #include <string.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "./libraries/stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "./libraries/stb_image_write.h"
 
 char* imageToBinary(unsigned char* inputFilePoint, int width, int height, int channels) {
     size_t totalBytes = width * height * channels;  // total number of bytes of image data
     size_t bufferSize = totalBytes * 8 + 1; // Each byte will be converted into 8 bits, plus 1 for null-terminator
 
     // Allocate memory for the buffer to store binary representation
-    char* buffer = (char*)malloc(bufferSize);
+    char *buffer = (char*)malloc(bufferSize);
     if (buffer == NULL) {
         printf("Memory allocation failed\n");
         return NULL;
@@ -47,20 +49,47 @@ char* stringToBinary(const char *str) {
     return binaryStr; 
 }
 
+unsigned char* binaryToImage(const char *binaryData, int width, int height, int channels) {
+    size_t totalBytes = width * height * channels;
+
+    unsigned char *imageData = (unsigned char*)malloc(totalBytes);
+    if (imageData == NULL) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+
+    // Convert the binary data back into raw pixel data (image)
+    int byteIndex = 0;
+    for (size_t i = 0; i < totalBytes; i++) {
+        unsigned char pixelValue = 0;
+        // Each pixel is represented by 8 bits in the binary string
+        for (int j = 7; j >= 0; j--) {
+            pixelValue |= (binaryData[byteIndex++] - '0') << j;
+        }
+        imageData[i] = pixelValue;
+    }
+
+    return imageData;
+}
+
+/*
+char* encode (char* imageData, char* message, char* key) {
+    char *encodedImageData;
+
+
+}
+*/
+
+
 int main() {
 
     FILE *inputFile = fopen("./images/image.png", "rb");
     FILE *outputFile = fopen("./output/output.txt", "wb"); // Open output image file in write mode
-    
+    const char *outputFilePoint = "./output/outputImage.png";
     int fileSize;
     int width, height, channels;
     const char KEY[] = "|msg|";
     const char MESSAGE[] = "Gooo Dawgs! Sic 'em! Woof wOof wOOf woOf!";
-    printf("%s", stringToBinary(KEY));
-        printf("\n");
-    printf("%s", stringToBinary(MESSAGE));
-
-
     
     unsigned char *inputFilePoint = stbi_load("./images/image.png", &width, &height, &channels, 0);
     if (outputFile == NULL) {
@@ -69,17 +98,23 @@ int main() {
         return 1;
     }
 
-
     fseek(inputFile, 0, SEEK_END);
     fileSize = ftell(inputFile);
     printf("filesize: %d\n", fileSize);
     fseek(inputFile, 0, SEEK_SET);
     
 
-    // Calculate the total size of the image data
+
     
-    //int hi = stbi__png(outputFile, width, height, inputFilePoint, width * channels);
-    fprintf(outputFile,imageToBinary(inputFilePoint, width, height, channels), "%s");
+
+
+    char* imageData = imageToBinary(inputFilePoint, width, height, channels);
+    unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
+    if (stbi_write_png("./output/outputImage.png", width, height, channels, actualImageData, width * channels)) {
+        printf("Image successfully written to outputImage.png\n");
+    } else {
+        printf("Failed to write image\n");
+    }
     // Close the output file and free the image data from memory
     fclose(outputFile);
     stbi_image_free(inputFilePoint);
