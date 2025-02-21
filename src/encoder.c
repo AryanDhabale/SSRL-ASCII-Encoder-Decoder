@@ -5,6 +5,36 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "./libraries/stb_image_write.h"
 
+
+char* calculate_checksum(const char *binaryData) {
+    uint8_t checksum = 0;
+
+    // Iterate through the binary data in chunks of 8 bits (1 byte)
+    for (size_t i = 0; i < strlen(binaryData); i += 8) {
+        int byte = 0;
+        for (int j = 0; j < 8; j++) {
+            if (i + j < strlen(binaryData)) {
+                byte |= (binaryData[i + j] - '0') << (7 - j);
+            }
+        }
+        checksum += byte; // Add the byte to the checksum
+    }
+
+    char *binaryChecksum = (char *)malloc(9 * sizeof(char));
+    if (binaryChecksum == NULL) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+
+    // Convert the checksum to an 8-bit binary string
+    for (int i = 7; i >= 0; i--) {
+        binaryChecksum[7 - i] = (checksum & (1 << i)) ? '1' : '0';
+    }
+    binaryChecksum[8] = '\0'; 
+
+    return binaryChecksum;
+}
+
 char* imageToBinary(unsigned char* inputFilePoint, int width, int height, int channels) {
     size_t totalBytes = width * height * channels;  // total number of bytes of image data
     size_t bufferSize = totalBytes * 8 + 1; // Each byte will be converted into 8 bits, plus 1 for null-terminator
@@ -69,23 +99,29 @@ unsigned char* binaryToImage(const char *binaryData, int width, int height, int 
         }
         imageData[i] = pixelValue;
     }
-    printf("end");
     return imageData;
 }
 
 
-void encode (char* imageData, char* message, char* key, int imageDataLength) {
+void encode (char* imageData, const char* message, const char* key, int imageDataLength) {
 
     // Copy the original image data to the encoded image buffe
-    
+    char *keyBinary = stringToBinary(key);
+    char *messageBinary = stringToBinary(message);
+    char* checksum = calculate_checksum(message);
     int index = 7;
-    for (size_t j = 0; j < strlen(message); j++) {
-        imageData[index] = message[j];
+    for (size_t j = 0; j < strlen(messageBinary); j++) {
+        imageData[index] = messageBinary[j];
         index += 8;
     }
 
-    for (size_t t = 0; t < strlen(key); t++) {
-        imageData[index] = key[t];
+    for (size_t t = 0; t < strlen(keyBinary); t++) {
+        imageData[index] = keyBinary[t];
+        index += 8;
+    }
+
+    for(int u = 0; u < 8; u++) {
+        imageData[index] = checksum[u];
         index += 8;
     }
 }
@@ -97,6 +133,7 @@ char* decode(char *binaryStr, const char *key) {
     int keyLength = strlen(key);
     size_t numBytes = len / 8;
     size_t extractedLength = 0;
+    int index = 0;
     
     
     // Allocate space for the extracted bits (as a string)
@@ -122,6 +159,7 @@ char* decode(char *binaryStr, const char *key) {
             break;
             printf("loop is not broken out of");
         }
+        index = i * 8 + 7;
     }
 
     hiddenBits[extractedLength] = '\0';
@@ -146,6 +184,19 @@ char* decode(char *binaryStr, const char *key) {
     message[messageLength] = '\0';
     
     free(hiddenBits);
+    char *checksum = calculate_checksum(message);
+
+    int checkSumPass = 1;
+    index += 16; //shift the index by 2 bits to match the current index.
+    for (int i = 0; i < 7; i++) {
+        if (checksum[i] !=binaryStr[index + 8*i]) {
+            printf("Data Lost/Message is incorrect");
+            checkSumPass = 0;
+        }
+    }
+    if (checkSumPass == 1) {
+        printf("No Data Lost :)");
+    }
     return message;
 }
 
@@ -156,7 +207,7 @@ int main() {
     FILE *outputFile = fopen("./output/output.txt", "wb"); // Open output image file in write mode
     int width, height, channels;
     const char KEY[] = "|||";
-    const char MESSAGE[] = "whatevre you want this to be gngo";
+    const char MESSAGE[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
     
     unsigned char *inputFilePoint = stbi_load("./images/image.png", &width, &height, &channels, 0);
     if (outputFile == NULL) {
@@ -168,20 +219,17 @@ int main() {
     printf("filesize: %d x %d\n", width, height);
 
     char *imageData = imageToBinary(inputFilePoint, width, height, channels);
-    char *keyBinary = stringToBinary(KEY);
-    char *messageBinary = stringToBinary(MESSAGE);
-    encode(imageData, messageBinary, keyBinary, width*height*channels);
+    encode(imageData, MESSAGE, KEY, width*height*channels);
 
     fprintf(outputFile, imageData, "%s");
-
     //unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
     unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
     
 
     if (stbi_write_png("./output/outputImage.png", width, height, channels, actualImageData, width * channels)) {
-        printf("Image successfully written\n");
+        printf("\nImage successfully written\n");
     } else {
-        printf("Failed to write image\n");
+        printf("\nFailed to write image\n");
     }
     
 
