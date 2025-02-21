@@ -60,6 +60,7 @@ unsigned char* binaryToImage(const char *binaryData, int width, int height, int 
 
     // Convert the binary data back into raw pixel data (image)
     int byteIndex = 0;
+    
     for (size_t i = 0; i < totalBytes; i++) {
         unsigned char pixelValue = 0;
         // Each pixel is represented by 8 bits in the binary string
@@ -68,34 +69,25 @@ unsigned char* binaryToImage(const char *binaryData, int width, int height, int 
         }
         imageData[i] = pixelValue;
     }
-
+    printf("end");
     return imageData;
 }
 
 
-char* encode (char* imageData, char* message, char* key) {
-    int bufferLength = strlen(imageData);
-    int bounds = strlen(message) + strlen(key)*2;
-    char *encodedImageData = imageData;
+void encode (char* imageData, char* message, char* key, int imageDataLength) {
 
-
-    int index = 0;
-    for (size_t i = 0; i < strlen(key); i++) {
-        encodedImageData[(i*8) + 7] = key[i];
-        index = (i*8) + 7;
+    // Copy the original image data to the encoded image buffe
+    
+    int index = 7;
+    for (size_t j = 0; j < strlen(message); j++) {
+        imageData[index] = message[j];
+        index += 8;
     }
 
-    for (size_t i = 0; i < strlen(message); i++) {
-        encodedImageData[(i*8) + 7] = message[i];
-        index = (i*8) + 7;
+    for (size_t t = 0; t < strlen(key); t++) {
+        imageData[index] = key[t];
+        index += 8;
     }
-    for (size_t i = 0; i < strlen(key); i++) {
-        encodedImageData[(i*8) + 7] = key[i];
-        index = (i*8) + 7;
-    }
-
-    return encodedImageData;
-
 }
 
 
@@ -104,11 +96,11 @@ int main() {
 
     FILE *inputFile = fopen("./images/image.png", "rb");
     FILE *outputFile = fopen("./output/output.txt", "wb"); // Open output image file in write mode
-    const char *outputFilePoint = "./output/outputImage.png";
+    //const char *outputFilePoint = "./output/outputImage.png";
     int fileSize;
     int width, height, channels;
-    const char KEY[] = "|msg|";
-    const char MESSAGE[] = "Gooo Dawgs! Sic 'em! Woof wOof wOOf woOf!";
+    const char KEY[] = "hi";
+    //const char MESSAGE[] = "Gooo Dawgs! Sic 'em! Woof wOof wOOf woOf!";
     
     unsigned char *inputFilePoint = stbi_load("./images/image.png", &width, &height, &channels, 0);
     if (outputFile == NULL) {
@@ -127,13 +119,24 @@ int main() {
     
 
 
-    char* imageData = imageToBinary(inputFilePoint, width, height, channels);
+    char *imageData = imageToBinary(inputFilePoint, width, height, channels);
+    char *keyBinary = stringToBinary(KEY);
+    char *messageBinary = stringToBinary(KEY);
+    encode(imageData, messageBinary, keyBinary, width*height*channels);
+
+    fprintf(outputFile, imageData, "%s");
+
+    printf("key in binary: %s", keyBinary);
+    //unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
     unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
+    
+    printf("something happens");
     if (stbi_write_png("./output/outputImage.png", width, height, channels, actualImageData, width * channels)) {
         printf("Image successfully written to outputImage.png\n");
     } else {
         printf("Failed to write image\n");
     }
+        
     // Close the output file and free the image data from memory
     fclose(outputFile);
     stbi_image_free(inputFilePoint);
