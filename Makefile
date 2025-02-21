@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c17 -Wall -Werror -pedantic -D_FORTIFY_SOURCE=2 -O1
+CFLAGS = -std=c17 -Wall -g
 
 SRC = src
 BIN = bin
