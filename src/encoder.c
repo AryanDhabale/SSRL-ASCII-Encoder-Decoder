@@ -3,6 +3,29 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "./libraries/stb_image.h"
 
+char* imageToBinary(unsigned char* inputFilePoint, int width, int height, int channels) {
+    size_t totalBytes = width * height * channels;  // total number of bytes of image data
+    size_t bufferSize = totalBytes * 8 + 1; // Each byte will be converted into 8 bits, plus 1 for null-terminator
+
+    // Allocate memory for the buffer to store binary representation
+    char* buffer = (char*)malloc(bufferSize);
+    if (buffer == NULL) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+
+    int bufferIndex = 0;
+
+    for (size_t i = 0; i < totalBytes; i++) {
+        for (int j = 7; j >= 0; j--) {
+            buffer[bufferIndex++] = (inputFilePoint[i] & (1 << j)) ? '1' : '0';
+        }
+    }
+    buffer[bufferIndex] = '\0'; 
+
+    return buffer;
+}
+
 char* stringToBinary(const char *str) {
     int len = strlen(str);
     int binaryLength = len * 8 + 1; 
@@ -54,22 +77,9 @@ int main() {
     
 
     // Calculate the total size of the image data
-    size_t totalBytes = width * height * channels;
-    printf("Total bytes: %zu\n", totalBytes); 
-
-    // Write the raw image data to the file
-    for (size_t i = 0; i < totalBytes; i++) {
-        for (int j = 7; j >=0; j--) {
-            fprintf(outputFile, "%d", (inputFilePoint[i] >> j) & 1);
-        }
-        fprintf(outputFile, " ");
-        if ((i + 1) % 4 == 0) {
-            fprintf(outputFile, "\n");
-        }
-    }
     
-    //int hi = stbi_write_png(outputFile, width, height, inputFilePoint, width * channels);
-
+    //int hi = stbi__png(outputFile, width, height, inputFilePoint, width * channels);
+    fprintf(outputFile,imageToBinary(inputFilePoint, width, height, channels), "%s");
     // Close the output file and free the image data from memory
     fclose(outputFile);
     stbi_image_free(inputFilePoint);
