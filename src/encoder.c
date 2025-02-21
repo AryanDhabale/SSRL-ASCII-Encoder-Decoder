@@ -90,7 +90,7 @@ void encode (char* imageData, char* message, char* key, int imageDataLength) {
     }
 }
 
-char* decode(char *binaryStr, char *key) {
+char* decode(char *binaryStr, const char *key) {
     size_t len = strlen(binaryStr);
     char *keyInBinary = stringToBinary(key);
     int keyStreak = 0;
@@ -118,20 +118,14 @@ char* decode(char *binaryStr, char *key) {
         } else {
             keyStreak = 0;
         }
-        printf(" %d", keyStreak);
         if (keyStreak == keyLength*8) {
             break;
             printf("loop is not broken out of");
         }
     }
 
-    printf("\nextracted length: %d", extractedLength);
     hiddenBits[extractedLength] = '\0';
 
-    printf("\n");
-    for (int i = 0; i < strlen(hiddenBits); i++) {
-        printf("%c", hiddenBits[i]);
-    }
     
     // Now, every group of 8 bits in hiddenBits will form one ASCII character.
     size_t messageLength = (extractedLength / 8) - strlen(key);
@@ -141,7 +135,6 @@ char* decode(char *binaryStr, char *key) {
         free(hiddenBits);
         return NULL;
     }
-    printf("\n message length: %zu" , messageLength);
     for (size_t i = 0; i < messageLength; i++) {
         int asciiVal = 0;
         // Process 8 bits for one character.
@@ -160,13 +153,10 @@ char* decode(char *binaryStr, char *key) {
 
 int main() {
 
-    FILE *inputFile = fopen("./images/image.png", "rb");
     FILE *outputFile = fopen("./output/output.txt", "wb"); // Open output image file in write mode
-    //const char *outputFilePoint = "./output/outputImage.png";
-    int fileSize;
     int width, height, channels;
-    const char KEY[] = "AB";
-    const char MESSAGE[] = "dude";
+    const char KEY[] = "|||";
+    const char MESSAGE[] = "whatevre you want this to be gngo";
     
     unsigned char *inputFilePoint = stbi_load("./images/image.png", &width, &height, &channels, 0);
     if (outputFile == NULL) {
@@ -175,10 +165,7 @@ int main() {
         return 1;
     }
 
-    fseek(inputFile, 0, SEEK_END);
-    fileSize = ftell(inputFile);
-    printf("filesize: %d\n", fileSize);
-    fseek(inputFile, 0, SEEK_SET);
+    printf("filesize: %d x %d\n", width, height);
 
     char *imageData = imageToBinary(inputFilePoint, width, height, channels);
     char *keyBinary = stringToBinary(KEY);
@@ -187,13 +174,12 @@ int main() {
 
     fprintf(outputFile, imageData, "%s");
 
-    printf("key in binary: %s", keyBinary);
     //unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
     unsigned char* actualImageData = binaryToImage(imageData, width, height, channels);
     
 
     if (stbi_write_png("./output/outputImage.png", width, height, channels, actualImageData, width * channels)) {
-        printf("Image successfully written to outputImage.png\n");
+        printf("Image successfully written\n");
     } else {
         printf("Failed to write image\n");
     }
